@@ -1,7 +1,7 @@
 import unittest
 
 from flask import Response
-from flask_jwt import _default_jwt_encode_handler
+from flask_jwt_extended import create_access_token
 
 from app import current_app as app
 from app.api.helpers.db import get_or_create, save_to_db
@@ -19,16 +19,14 @@ class TestPermissionManager(OpenEventTestCase):
         self.app = Setup.create_app()
         with app.test_request_context():
             user = UserFactory()
-            db.session.add(user)
-            db.session.commit()
+            save_to_db(user)
 
             event = EventFactoryBasic()
             event.user_id = user.id
-            db.session.add(event)
-            db.session.commit()
+            save_to_db(event)
 
             # Authenticate User
-            self.auth = {'Authorization': "JWT " + str(_default_jwt_encode_handler(user), 'utf-8')}
+            self.auth = {'Authorization': "JWT " + create_access_token(user.id, fresh=True)}
 
     def test_has_access(self):
         """Method to test whether user has access to different roles"""

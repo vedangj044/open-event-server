@@ -8,12 +8,11 @@ from app.api.helpers.exceptions import UnprocessableEntity
 from app.api.schema.sessions import SessionSchema
 from app.factories.session import SessionFactory
 from app.models import db
+from app.api.helpers.db import save_to_db
 from tests.all.integration.setup_database import Setup
 
 
 class TestSessionValidation(OpenEventTestCase):
-    def setUp(self):
-        self.app = Setup.create_app()
 
     def test_date_pass(self):
         """
@@ -25,10 +24,10 @@ class TestSessionValidation(OpenEventTestCase):
             'data': {}
         }
         data = {
-            'starts_at': datetime(2003, 8, 4, 12, 30, 45).replace(tzinfo=timezone('UTC')),
-            'ends_at': datetime(2003, 9, 4, 12, 30, 45).replace(tzinfo=timezone('UTC'))
+            'starts_at': datetime(2099, 8, 4, 12, 30, 45).replace(tzinfo=timezone('UTC')),
+            'ends_at': datetime(2099, 9, 4, 12, 30, 45).replace(tzinfo=timezone('UTC'))
         }
-        SessionSchema.validate_date(schema, data, original_data)
+        SessionSchema.validate_fields(schema, data, original_data)
 
     def test_date_start_gt_end(self):
         """
@@ -40,11 +39,11 @@ class TestSessionValidation(OpenEventTestCase):
             'data': {}
         }
         data = {
-            'starts_at': datetime(2003, 9, 4, 12, 30, 45).replace(tzinfo=timezone('UTC')),
-            'ends_at': datetime(2003, 8, 4, 12, 30, 45).replace(tzinfo=timezone('UTC'))
+            'starts_at': datetime(2099, 9, 4, 12, 30, 45).replace(tzinfo=timezone('UTC')),
+            'ends_at': datetime(2099, 8, 4, 12, 30, 45).replace(tzinfo=timezone('UTC'))
         }
         with self.assertRaises(UnprocessableEntity):
-            SessionSchema.validate_date(schema, data, original_data)
+            SessionSchema.validate_fields(schema, data, original_data)
 
     def test_date_db_populate(self):
         """
@@ -54,8 +53,7 @@ class TestSessionValidation(OpenEventTestCase):
         with app.test_request_context():
             schema = SessionSchema()
             obj = SessionFactory()
-            db.session.add(obj)
-            db.session.commit()
+            save_to_db(obj)
 
             original_data = {
                 'data': {
@@ -63,7 +61,7 @@ class TestSessionValidation(OpenEventTestCase):
                 }
             }
             data = {}
-            SessionSchema.validate_date(schema, data, original_data)
+            SessionSchema.validate_fields(schema, data, original_data)
 
 
 if __name__ == '__main__':

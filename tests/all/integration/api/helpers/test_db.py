@@ -13,8 +13,6 @@ from tests.all.integration.setup_database import Setup
 
 
 class TestDBHelperValidation(OpenEventTestCase):
-    def setUp(self):
-        self.app = Setup.create_app()
 
     def test_save_to_db(self):
         """Method to test the function save_to_db"""
@@ -30,8 +28,7 @@ class TestDBHelperValidation(OpenEventTestCase):
 
         with app.test_request_context():
             event = EventFactoryBasic()
-            db.session.add(event)
-            db.session.commit()
+            save_to_db(event)
             obj = safe_query(db, Event, 'id', event.id, 'event_id')
             self.assertEqual(obj.name, event.name)
 
